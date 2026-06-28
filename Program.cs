@@ -24,6 +24,8 @@ namespace Lab08
         private double mu;
         private DateTime startTime;
         private List<double> busyChannelsHistory = new List<double>();
+        private int idleObservations = 0;
+        private int totalObservations = 0;
 
         public Server(int channels, double serviceIntensity)
         {
@@ -38,8 +40,11 @@ namespace Lab08
             lock (threadLock)
             {
                 requestCount++;
-                double currentBusy = GetBusyChannelsCount();
-                busyChannelsHistory.Add(currentBusy);
+                int busyCount = GetBusyChannelsCount();
+                busyChannelsHistory.Add(busyCount);
+                totalObservations++;
+                if (busyCount == 0)
+                    idleObservations++;
 
                 for (int i = 0; i < n; i++)
                 {
@@ -78,6 +83,11 @@ namespace Lab08
         {
             if (busyChannelsHistory.Count == 0) return 0;
             return busyChannelsHistory.Average();
+        }
+
+        public double GetIdleProbability()
+        {
+            return totalObservations > 0 ? (double)idleObservations / totalObservations : 0;
         }
 
         public double GetExperimentDuration()
@@ -138,7 +148,7 @@ namespace Lab08
     {
         static int n = 3;
         static double mu = 1.0;
-        static int simulationTime = 60;
+        static int simulationTime = 120;
 
         static void Main(string[] args)
         {
@@ -177,7 +187,7 @@ namespace Lab08
             CreateGraph(lambdaValues, expPn, theorPn, "Failure Probability", "result/p-1.png");
             CreateGraph(lambdaValues, expQ, theorQ, "Relative Throughput", "result/p-2.png");
             CreateGraph(lambdaValues, expA, theorA, "Absolute Throughput", "result/p-3.png");
-            CreateGraph(lambdaValues, expK, theorK, "Avg Busy Channels", "result/p-4.png");
+            CreateGraph(lambdaValues, expK, theorK, "Average Busy Channels", "result/p-4.png");
             CreateGraph(lambdaValues, expP0, theorP0, "Idle Probability", "result/p-5.png");
 
             SaveResults(lambdaValues, expP0, expPn, expQ, expA, expK, 
@@ -202,7 +212,7 @@ namespace Lab08
             double Q = 1.0 - Pn;
             double A = server.processedCount / duration;
             double K = server.GetAverageBusyChannels();
-            double P0 = 1.0 - (server.processedCount / (double)server.requestCount);
+            double P0 = server.GetIdleProbability();
 
             return (P0, Pn, Q, A, K);
         }
@@ -231,7 +241,7 @@ namespace Lab08
             return result;
         }
 
-       static void CreateGraph(double[] x, List<double> yExp, List<double> yTheor, string title, string filename)
+        static void CreateGraph(double[] x, List<double> yExp, List<double> yTheor, string title, string filename)
         {
             var plt = new ScottPlot.Plot();
             plt.Title(title);
@@ -242,13 +252,13 @@ namespace Lab08
             scatterExp.Color = ScottPlot.Colors.Red;
             scatterExp.MarkerSize = 5;
             scatterExp.LineWidth = 1;
-            scatterExp.Label = "Experimental";
+            scatterExp.LegendText = "Experimental";
 
             var scatterTheor = plt.Add.Scatter(x, yTheor.ToArray());
             scatterTheor.Color = ScottPlot.Colors.Blue;
             scatterTheor.MarkerSize = 5;
             scatterTheor.LineWidth = 1;
-            scatterTheor.Label = "Theoretical";
+            scatterTheor.LegendText = "Theoretical";
 
             plt.ShowLegend(ScottPlot.Alignment.LowerRight);
             plt.SavePng(filename, 800, 600);
