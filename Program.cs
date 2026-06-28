@@ -231,21 +231,26 @@ namespace Lab08
             return result;
         }
 
-        static void CreateGraph(double[] x, List<double> yExp, List<double> yTheor, string title, string filename)
+       static void CreateGraph(double[] x, List<double> yExp, List<double> yTheor, string title, string filename)
         {
-            var plt = new Plot();
+            var plt = new ScottPlot.Plot();
             plt.Title(title);
             plt.XLabel("Lambda (intensity)");
             plt.YLabel(title);
 
-            plt.Add.Scatter(x, yExp.ToArray(), ScottPlot.Color.Red, 3, ScottPlot.MarkerShape.FilledCircle);
-            plt.Add.Scatter(x, yTheor.ToArray(), ScottPlot.Color.Blue, 3, ScottPlot.MarkerShape.FilledCircle);
+            var scatterExp = plt.Add.Scatter(x, yExp.ToArray());
+            scatterExp.Color = ScottPlot.Colors.Red;
+            scatterExp.MarkerSize = 5;
+            scatterExp.LineWidth = 1;
+            scatterExp.Label = "Experimental";
 
-            var legend = plt.Add.Legend();
-            legend.Location = Alignment.LowerRight;
-            legend.ManualLabels.Add("Experimental");
-            legend.ManualLabels.Add("Theoretical");
+            var scatterTheor = plt.Add.Scatter(x, yTheor.ToArray());
+            scatterTheor.Color = ScottPlot.Colors.Blue;
+            scatterTheor.MarkerSize = 5;
+            scatterTheor.LineWidth = 1;
+            scatterTheor.Label = "Theoretical";
 
+            plt.ShowLegend(ScottPlot.Alignment.LowerRight);
             plt.SavePng(filename, 800, 600);
         }
 
