@@ -1,20 +1,20 @@
 name: .NET
 
-
-on: [push, pull_request]
-
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
- build:
-
+  build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '9.x'
+        dotnet-version: '8.x'
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
